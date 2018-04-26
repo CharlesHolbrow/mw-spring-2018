@@ -1,0 +1,22 @@
+{
+  "name": "mw-spring-2018",
+  "version": "1.0.0",
+  "description": "browser audio",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup ./src/index.js --o ./build/bundle.js -f umd --name mw-spring-2017"
+  },
+  "author": "Charles Holbrow",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "svg.js": "^2.6.4",
+    "tone": "^13.1.4"
+  },
+  "devDependencies": {
+    "rollup": "^0.58.2",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-copy": "^0.2.3",
+    "rollup-plugin-node-resolve": "^3.3.0"
+  }
+}
