@@ -11,7 +11,7 @@ body {
 
 svg {
   overflow: visible;
-  border: 100px solid tomato;
+  border: 10px solid tomato;
   box-sizing: border-box;
 }
 
@@ -25,27 +25,20 @@ The default position is 'static' so we have to make the
 parent be non-static for inner divs to work as desired
 */
 
-div.level {
-  top: 0;
-  left: 0;
-  position: relative;
-  white-space: nowrap;
-  width: 3600px;
+div.outer {
+  height: 100%;
+  width: 100%;
+  border: 1px dashed yellow;
+  box-sizing: border-box;
+  overflow: scroll;
 }
 
-div.pannel {
-  height: 1200px;
-  width: 1200px;
+#svg-root {
+  height: 400%;
+  width: 400%;
+  top: 200%;
+  left: 200%;
   box-sizing: border-box;
   position: relative;
-  display: inline-block;
-}
-
-.center-top-left {
-  border: 8px solid greenyellow;
-  top: 50%;
-  left: 50%;
-  height: 1200px;
-  width: 1200px;
-  position: absolute;
+  border: 2px dashed seagreen;
 }

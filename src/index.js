@@ -2,37 +2,60 @@
 import Tone from 'tone';
 import SVG from 'svg.js';
 
-const root = document.getElementById('svg-root');
+var svgRoot = window.svgRoot = document.getElementById('svg-root');
+var outer = window.outer = document.getElementById('outer');
+
+
+var camera = window.camera = {x:0, y: 0};
+var panToCamera = window.panToCamera = function() {
+  var svgBox = svgRoot.getBoundingClientRect();
+  var outerBox = outer.getBoundingClientRect();
+
+  // Panning to scrollXY will put svg origin in the upper left of 'outer'
+  var scrollX = svgBox.width * 0.5;
+  var scrollY = svgBox.height * 0.5;
+
+  // Move the svg origin to the center of the screen
+  scrollX -= (outerBox.width * 0.5);
+  scrollY -= (outerBox.height * 0.5);
+
+  // Then adjust the camera
+  scrollX += camera.x;
+  scrollY += camera.y;
+
+  console.log('Pan to', Math.floor(scrollX), Math.floor(scrollY));
+  outer.scrollTo(Math.floor(scrollX), Math.floor(scrollY));
+};
+
 
 window.addEventListener('resize', function(){
-  console.log(window.innerWidth, window.innerHeight);
+  console.log('resize:', window.innerWidth, window.innerHeight);
+  panToCamera();
 });
 
-window.addEventListener('scroll', function(){
-  const e = document.body;
-  console.log(e.scrollTop, e.scrollLeft)
+outer.addEventListener('scroll', function(){
+  console.log('scroll', outer.scrollLeft, outer.scrollTop);
 });
 
-setTimeout(() => {
-  window.scrollTo(1800, 1800);
-}, 10);
 
+panToCamera();
 
-const synth = window.synth = new Tone.Sampler({
+var synth = window.synth = new Tone.Sampler({
   61: './sound/delmar-061.wav',
 }, () => {
   console.log('hi222');
   synth.triggerAttack(Tone.Frequency(50, 'midi'));
 }).toMaster();
 
-const main = window.main = SVG(root).size(210, 210);
+var main = window.main = SVG(svgRoot).size(210, 210);
 
-const g1 = main.gradient('linear', (stop) => {
+var g1 = main.gradient('linear', (stop) => {
   stop.at(0.0, '#000', 0.0);
   stop.at(0.5, '#fff', 1.0);
   stop.at(1.0, '#000', 0.0);
 });
 
 
-const r1 = main.rect(20, 20).fill('#00f').x(-10).y(-10);
-const r4 = main.rect(800, 3).fill(g1).x(50).radius(4).y(10);
+// var r1 = main.rect(20, 20).fill('#00f').x(-10).y(-10);
+var r2 = main.rect(3000, 30).fill('#55f').y(30).x(-50);
+// var r4 = main.rect(800, 3).fill(g1).x(50).radius(4).y(10);
