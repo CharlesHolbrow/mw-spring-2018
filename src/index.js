@@ -1,7 +1,10 @@
 
 import Tone from 'tone';
 import SVG from 'svg.js';
+
+import Cell from './Cell.js';
 import './scroll.js';
+import { threeSaturationLevels } from './colors.js';
 
 
 var synth = window.synth = new Tone.Sampler({
@@ -11,15 +14,38 @@ var synth = window.synth = new Tone.Sampler({
   synth.triggerAttack(Tone.Frequency(50, 'midi'));
 }).toMaster();
 
+
 var main = window.main = SVG(svgRoot).size(210, 210);
 
-var g1 = main.gradient('linear', (stop) => {
-  stop.at(0.0, '#000', 0.0);
-  stop.at(0.5, '#fff', 1.0);
-  stop.at(1.0, '#000', 0.0);
+var g1 = main.gradient('radial', (stop) => {
+  stop.at(0.0, '#fff', 1.0);
+  stop.at(1, '#900', 1.0);
 });
 
 
-// var r1 = main.rect(20, 20).fill('#00f').x(-10).y(-10);
-var r2 = main.rect(3000, 30).fill('#55f').y(30).x(-50);
-// var r4 = main.rect(800, 3).fill(g1).x(50).radius(4).y(10);
+var size = 100;
+var spacing = 16;
+var cellSize = size + spacing;
+
+var cells = window.cells = [];
+
+for (var y = -10; y < 10; y++) {
+  for (var x = -10; x < 10; x++) {
+    if (!Math.floor(Math.random()*8)) {
+
+      var cell = new Cell(main, {size: 100});
+      cell.x(x * size + spacing);
+      cell.y(y * size + spacing);
+      cells.push(cell);
+    }
+  }
+}
+
+var i = 0;
+
+setInterval(() => {
+  for (var i = 0; i < cells.length; i++){
+    var cell = cells[i];
+    cell.gradient.animate(400).radius(2).animate(300).radius(0.5);
+  };
+}, 1500);
