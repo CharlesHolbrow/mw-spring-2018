@@ -1,4 +1,6 @@
 import Tone from 'tone';
+import SVG from 'svg.js';
+
 import { threeSaturationLevels } from './colors.js';
 
 export default class Cell {
@@ -20,6 +22,18 @@ export default class Cell {
       .rect(this.size, this.size)
       .radius(this.radius)
       .fill(this.gradient);
+
+    this.svg.on('click', () => {
+      this.play();
+    });
+
+    var initialBlur = 0;
+    this.svg.filter((add) => {
+      // There is a bug where the gaussian blur stdDeviation value is set as a
+      // string, not a number.
+      this.filter = add.gaussianBlur(initialBlur);
+    }).size('200%','200%').move('-50%', '-50%');
+    this.filter.attr('stdDeviation',initialBlur) // hacky fix
 
     this.synth = new Tone.Sampler({
       61: './sound/delmar-end.wav',
@@ -44,13 +58,22 @@ export default class Cell {
   }
 
   play() {
-    if (!this.synth.loaded) throw new Error('Synth not loaded');
+    if (!this.synth.loaded) {
+      console.warn('Cannot play: samples not loaded')
+      return;
+    }
+
     this.framesDrawn = 0;
     this.synth.triggerAttackRelease(Tone.Frequency(61, 'midi'), 12);
 
     // This is a little sloppy, because we are playing multiple samples at the
     // same time, we end up with redundant .draw() calls.
     this.animate()
+  }
+
+  blur(value, ms) {
+    var ms = typeof ms === 'number' ? ms : 1000;
+    this.filter.animate(ms).attr('stdDeviation', value);
   }
 
   /**

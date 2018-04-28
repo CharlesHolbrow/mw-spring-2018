@@ -10,6 +10,7 @@
   "author": "Charles Holbrow",
   "license": "UNLICENSED",
   "dependencies": {
+    "svg.filter.js": "^2.0.2",
     "svg.js": "^2.6.4",
     "tone": "^13.1.4"
   },

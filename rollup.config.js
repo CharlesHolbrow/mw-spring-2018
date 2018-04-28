@@ -21,7 +21,8 @@ export default {
     commonjs(),
     copy({
         './node_modules/tone/build/Tone.js': 'public/js/tone.js',
-        './node_modules/svg.js/dist/svg.js': 'public/js/svg.js'
+        './node_modules/svg.js/dist/svg.js': 'public/js/svg.js',
+        './node_modules/svg.filter.js/dist/svg.filter.js': 'public/js/svg.filter.js',
     })
   ],
   external: ['tone', 'svg.js']
