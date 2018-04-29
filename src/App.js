@@ -1,7 +1,7 @@
 import { Synk }  from 'synk-js';
 
-import Cell from './Cell.js';
 import AppEndpoint from './AppEndpoint.js';
+import Cell from './Cell.js';
 
 /**
 * High level Aether Application
@@ -14,10 +14,11 @@ export default class App {
     const https = window.location.protocol.startsWith('https');
     const url =  `${https ? 'wss' : 'ws'}://${window.location.host}/ws`;
     
-    const temporaryUrl = 'ws://localhost:5000/ws';
+    this.focusChunk = {x: 0, y: 0};
+    this.mapName = 'snd:a';
     this.svgParent = svgParent;
 
-    this.synk = new Synk(temporaryUrl);
+    this.synk = new Synk(url);
     this.endpoint = new AppEndpoint(this);
 
     // All messages from the server will be passed to the endpoint. Thanks to
@@ -25,7 +26,7 @@ export default class App {
     // messages will still be passed through to this.endpoint.
     this.endpoint.subscribe(this.synk.connection.stream);
 
-    // Set the default class for Characters
+    // Set the default class for cell objects
     this.synk.objects.byKey.createBranch('cell').class = Cell;
 
     // Add The object to 
@@ -44,5 +45,30 @@ export default class App {
     this.synk.connection.on('open', () => {
       console.log('connection open bySKey.branches: ', Object.keys(this.synk.objects.bySKey.branches));
     });
+  }
+
+  /**
+   * Set the synk subscription to the area described below.
+   * @param {Integer} x - coordinate of the xChunk to focus on
+   * @param {Integer} y - coordinate of the yChunk to focus on
+   */
+  focusOnChunk(x, y) {
+    this.focusChunk.x = x;
+    this.focusChunk.y = y;
+
+    var chunks = [];
+    var xStart = x - 1; // inclusive
+    var xEnd = x + 2;   // exclusive
+    var yStart = y - 1; // inclusive
+    var yEnd = y + 2;   // exclusive
+
+    for (var cy = yStart; cy < yEnd; cy++) {
+      for (var cx = xStart; cx < xEnd; cx++) {
+        chunks.push(`${this.mapName}|${cx}|${cy}`);
+      }
+    }
+
+    this.synk.setSubscription(chunks);
+    this.synk.resolve();
   }
 }

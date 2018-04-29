@@ -10,6 +10,8 @@ export default class AppEndpoint extends Endpoint {
    */
   constructor(app) {
     super();
+    // Even though this doesn't do anything right now, I'm keeping it around,
+    // because this is a handy place to add custom listeners.
     this.app = app;
   }
 }

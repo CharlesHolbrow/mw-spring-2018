@@ -19,3 +19,5 @@ import App from './App.js';
 var main = window.main = SVG(svgRoot).size(210, 210);
 
 var app = window.app = new App(main);
+
+app.focusOnChunk(0, 0);
