@@ -9,19 +9,16 @@ var SPACING = 116;
 export default class Cell {
   constructor(id, state) {
     //state: {subKey: "piano:main", audioPath: "", x: 1, y: 4}
-    console.log('creating new Cell:', state)
 
     // default values
-    this.hue = Math.random();
     this.radius = 10;
-  
-    this.pos = {x:0, y:0};
-    this.xy = {x:0, y:0};
-
-    this.update(state);
-
+    this.hue = Math.random();
     this.colors = threeSaturationLevels(this.hue)
-    
+    this.pos = {x:0, y:0};
+    this.pixelPos = {x:0, y:0};
+
+    this.update(state); updates
+
     this.synth = new Tone.Sampler({
       61: './sound/delmar-end.wav',
     }, () => {}).toMaster();
@@ -29,6 +26,17 @@ export default class Cell {
     this.meter = new Tone.Meter(0.9);
     this.synth.connect(this.meter);
     this.framesDrawn = 0;
+
+    this.svg = new SVG.Rect()
+      .size(SIZE, SIZE)
+      .radius(this.radius)
+      .x(this.pixelPos.x)
+      .y(this.pixelPos.y).fill('#ccc');
+
+    this.svg.on('click', () => {
+      console.log('click', this.id);
+      this.play();
+    });
   }
 
   update(state) {
@@ -43,52 +51,40 @@ export default class Cell {
     if (this.svg) this.svg.remove();
   }
 
-  setParent(main) {
-    if (this.svg) {
-      throw new Error("Cell already has parent");
-    }
-
-    this.gradient = main.gradient('radial', (stop) => { // charles: parent/main/svg????
-      stop.at(0.0, this.colors[2], 1.0);
-      stop.at(1.0, this.colors[0], 1.0);
-    }).radius(0.0);
-
-    this.svg = main
-      .rect(SIZE, SIZE)
-      .radius(this.radius)
-      .x(this.xy.x)
-      .y(this.xy.y)
-      .fill(this.gradient);
-
-    // update svg position
-    this.x = this.x;
-    this.y = this.y;
-
-    this.svg.on('click', () => {
-      console.log('click', this.id);
-      this.play();
-    });
+  setParent(parent) {
+    parent.add(this.svg);
+    // Filters and gradients are nested under the parent, and referenced from
+    // children. So both filters and gradients are referenced as peers. This
+    // means that filters and gradients should be created on the parent so they
+    // can be found by their peers.
 
     var initialBlur = 0;
     this.svg.filter((add) => {
       // There is a bug where the gaussian blur stdDeviation value is set as a
-      // string, not a number.
+      // string, not a number. This means it cannot be animated using SVG.js.
       this.filter = add.gaussianBlur(initialBlur);
     }).size('200%','200%').move('-50%', '-50%');
-    this.filter.attr('stdDeviation',initialBlur); // hacky fix
+    this.filter.attr('stdDeviation', initialBlur); // hack/fix
+
+    this.gradient = parent.gradient('radial', (stop) => {
+      stop.at(0.0, this.colors[2], 1.0);
+      stop.at(1.0, this.colors[0], 1.0);
+    }).radius(0.0);
+
+    this.svg.fill(this.gradient);
   }
 
   set x(value) {
     this.pos.x = value;
-    this.xy.x = value * SPACING;
-    if (this.svg) this.svg.x(this.xy.x);
+    this.pixelPos.x = value * SPACING;
+    if (this.svg) this.svg.x(this.pixelPos.x);
     return this;
   }
 
   set y(value) {
     this.pos.y = value;
-    this.xy.y = value * SPACING;
-    if (this.svg) this.svg.y(this.xy.y);
+    this.pixelPos.y = value * SPACING;
+    if (this.svg) this.svg.y(this.pixelPos.y);
     return this;
   }
 
