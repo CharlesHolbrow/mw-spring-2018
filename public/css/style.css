@@ -12,6 +12,8 @@ body {
 svg {
   overflow: visible;
   box-sizing: border-box;
+  /* I have no idea why, but position:relative makes chrome respect overflow: visible */
+  position: relative;
 }
 
 
