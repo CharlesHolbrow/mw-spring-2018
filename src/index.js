@@ -8,13 +8,10 @@ import { threeSaturationLevels } from './colors.js';
 import Cell from './Cell.js';
 import App from './App.js';
 
-// Never finished
-// Other users can remix
+// Never finished - the server should be changing all the time.
+// Other users can remix -
 // Watch other listeners movement
-
-// var filter = window.filter = new SVG.Filter();
-// var fBlur = window.fBlur = filter.gaussianBlur(15);
-// filter.size('200%','200%').move('-50%', '-50%');
+// Real-time -- so you might miss something. Time matters
 
 var main = window.main = SVG(svgRoot).size(210, 210);
 

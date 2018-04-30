@@ -17,10 +17,13 @@ export default class Cell {
     this.pos = {x:0, y:0};
     this.pixelPos = {x:0, y:0};
 
+    var audioPath = state.audioPath;
+    delete state.audioPath;
+
     this.update(state); updates
 
     this.synth = new Tone.Sampler({
-      61: './sound/delmar-end.wav',
+      61: audioPath,
     }, () => {}).toMaster();
 
     this.meter = new Tone.Meter(0.9);
