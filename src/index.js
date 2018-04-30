@@ -12,6 +12,10 @@ import App from './App.js';
 // Other users can remix -
 // Watch other listeners movement
 // Real-time -- so you might miss something. Time matters
+// To think about:
+//
+// Paths from sounds
+// Layers? Muriel Cooper?
 
 var main = window.main = SVG(svgRoot).size(210, 210);
 

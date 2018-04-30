@@ -2,6 +2,7 @@ import { Synk }  from 'synk-js';
 
 import AppEndpoint from './AppEndpoint.js';
 import Cell from './Cell.js';
+import BufferCache from './BufferCache.js';
 
 /**
 * High level Aether Application
@@ -18,6 +19,7 @@ export default class App {
     this.mapName = 'snd:a';
     this.svgParent = svgParent;
 
+    this.bufferCache = new BufferCache();
     this.synk = new Synk(url);
     this.endpoint = new AppEndpoint(this);
 
@@ -32,6 +34,7 @@ export default class App {
     // Add The object to 
     this.synk.objects.on('add', (obj, msg) => {
       if (obj instanceof Cell) {
+        obj.setBuffer(this.bufferCache.get(obj.audioPath));
         obj.setParent(svgParent);
       }
     });
@@ -57,10 +60,10 @@ export default class App {
     this.focusChunk.y = y;
 
     var chunks = [];
-    var xStart = x - 1; // inclusive
-    var xEnd = x + 2;   // exclusive
-    var yStart = y - 1; // inclusive
-    var yEnd = y + 2;   // exclusive
+    var xStart = x - 2; // inclusive
+    var xEnd = x + 3;   // exclusive
+    var yStart = y - 2; // inclusive
+    var yEnd = y + 3;   // exclusive
 
     for (var cy = yStart; cy < yEnd; cy++) {
       for (var cx = xStart; cx < xEnd; cx++) {
