@@ -181,10 +181,12 @@ export default class Cell {
     var db = this.meter.getLevel();
     var gain = db > -240 ?  Tone.dbToGain(db) : 0;
 
-    this.gradient.radius(gain);
+    // In firefox, setting the radius close to 0 causes the object to vanish
+    // altogether. Use Math.max to ensure that it never goes that low.
+    this.gradient.radius(Math.max(gain, 0.001));
     this.framesDrawn++;
 
-    if (this.framesDrawn > 100 && gain === 0) return true;
+    if (this.framesDrawn > 100 && gain <= 0) return true;
     return false;
   }
 
