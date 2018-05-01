@@ -2,7 +2,6 @@
 import Tone from 'tone';
 import SVG from 'svg.js';
 
-import './scroll.js';
 import { threeSaturationLevels } from './colors.js';
 
 import Cell from './Cell.js';
@@ -17,8 +16,8 @@ import App from './App.js';
 // Paths from sounds
 // Layers? Muriel Cooper?
 
-var main = window.main = SVG(svgRoot).size(210, 210);
+var svgRoot = document.getElementById('svg-parent');
 
-var app = window.app = new App(main);
+var app = window.app = new App(svgRoot);
 
 app.focusOnChunk(0, 0);

@@ -3,6 +3,7 @@ import { Synk }  from 'synk-js';
 import AppEndpoint from './AppEndpoint.js';
 import Cell from './Cell.js';
 import BufferCache from './BufferCache.js';
+import Scroll from './scroll.js';
 
 /**
 * High level Aether Application
@@ -12,16 +13,23 @@ export default class App {
   * Create an App
   */
   constructor(svgParent) {
+    this.svgParent = svgParent;
+    this.svgRoot = SVG(svgParent).size(210, 210);
+    this.outer = document.getElementById('outer');
+
     const https = window.location.protocol.startsWith('https');
     const url =  `${https ? 'wss' : 'ws'}://${window.location.host}/ws`;
     
     this.focusChunk = {x: 0, y: 0};
     this.mapName = 'snd:a';
-    this.svgParent = svgParent;
+    this.svgCells = this.svgRoot.nested();
 
+    this.scroll = new Scroll(this.outer, this.svgParent);
     this.bufferCache = new BufferCache();
     this.synk = new Synk(url);
     this.endpoint = new AppEndpoint(this);
+
+    this.scroll.panTo(0, 0);
 
     // All messages from the server will be passed to the endpoint. Thanks to
     // the connection object, even if we disconnect and reconnect, incoming
@@ -35,7 +43,7 @@ export default class App {
     this.synk.objects.on('add', (obj, msg) => {
       if (obj instanceof Cell) {
         obj.setBuffer(this.bufferCache.get(obj.audioPath));
-        obj.setParent(svgParent);
+        obj.setParent(this.svgCells);
       }
     });
     this.synk.objects.on('mod', (obj, msg) => {});

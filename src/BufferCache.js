@@ -9,7 +9,6 @@ export default class BufferCache {
     if (this.dataByUrl.hasOwnProperty(url))
       return this.dataByUrl[url];
     
-    console.log('Get Buffer:', url);
     const buffer = new Tone.Buffer(url);
     this.dataByUrl[url] = buffer;
     return buffer;
