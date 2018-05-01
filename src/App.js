@@ -13,9 +13,9 @@ export default class App {
   * Create an App
   */
   constructor(svgParent) {
-    this.svgParent = svgParent;
-    this.svgRoot = SVG(svgParent).size(210, 210);
-    this.outer = document.getElementById('outer');
+    this.outer = svgParent.parentElement; // The smaller div with scrolling
+    this.svgParent = svgParent;           // The div that will be centered
+    this.svgRoot = SVG(svgParent).size(210, 210); // the svg
 
     const https = window.location.protocol.startsWith('https');
     const url =  `${https ? 'wss' : 'ws'}://${window.location.host}/ws`;
