@@ -30,9 +30,6 @@ export default class App {
     this.endpoint = new AppEndpoint(this);
 
     this.scroll.panTo(0, 0);
-    this.scroll.on('offset', (off) => {
-      this.svgCells.x(off.x).y(off.y);
-    });
 
     // All messages from the server will be passed to the endpoint. Thanks to
     // the connection object, even if we disconnect and reconnect, incoming

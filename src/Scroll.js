@@ -51,8 +51,6 @@ export default class Scroll extends EventEmitter {
     this.pixel = {x: 0, y: 0};
     this.chunk = {x: 0, y: 0};
 
-    // How much to offset our content? Always a multiple of chunkSize.
-    this.offset = {x: 0, y: 0};
     // Effectively, this is the pixel that we are looking at.
     this.camera = {x: 0, y: 0};
 
@@ -77,27 +75,8 @@ export default class Scroll extends EventEmitter {
       this.chunk.y = chunkY;
       this.pixel.x = pixelX;
       this.pixel.y = pixelY;
-
-      if (chunkX !== 0) {
-        const offsetX = chunkSize * chunkX * -1;
-        this.outer.scrollLeft += offsetX;
-        this.offset.x += offsetX;
-      }
-
-      if (chunkY !== 0) {
-        const offsetY =  chunkSize * chunkY * -1;
-        this.outer.scrollTop += offsetY;
-        this.offset.y += offsetY;
-      }
-
-      this.camera.x = (this.offset.x * -1) + this.pixel.x;
-      this.camera.y = (this.offset.y * -1) + this.pixel.y;
-
-      console.log('offset', this.chunk, this.pixel, this.offset);
-
-      if (chunkX !== 0 || chunkY !== 0) {
-        this.emit('offset', this.offset);
-      }
+      this.camera.x = x;
+      this.camera.y = y;
     });
   }
 
