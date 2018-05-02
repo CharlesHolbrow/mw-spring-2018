@@ -79,21 +79,25 @@ export default class Scroll extends EventEmitter {
       this.pixel.y = pixelY;
 
       if (chunkX !== 0) {
-        const offsetX = chunkSize * chunkX;
-        this.outer.scrollLeft += offsetX * -1;
+        const offsetX = chunkSize * chunkX * -1;
+        this.outer.scrollLeft += offsetX;
         this.offset.x += offsetX;
       }
 
       if (chunkY !== 0) {
-        const offsetY = chunkSize * chunkY;
-        this.outer.scrollTop += (offsetY * -1)
+        const offsetY =  chunkSize * chunkY * -1;
+        this.outer.scrollTop += offsetY;
         this.offset.y += offsetY;
       }
 
-      this.camera.x = this.offset.x + this.pixel.x;
-      this.camera.y = this.offset.y + this.pixel.y;
+      this.camera.x = (this.offset.x * -1) + this.pixel.x;
+      this.camera.y = (this.offset.y * -1) + this.pixel.y;
 
-      console.log('scroll', x, y, this.offset, this.camera);
+      console.log('offset', this.chunk, this.pixel, this.offset);
+
+      if (chunkX !== 0 || chunkY !== 0) {
+        this.emit('offset', this.offset);
+      }
     });
   }
 
