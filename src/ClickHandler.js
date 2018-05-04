@@ -1,22 +1,28 @@
 import Tone from 'tone';
 
-class Sequence {
+class Things {
   constructor() {
-    this.clear();
+    this.index = 0;
+    this.data = [];
   }
 
   /**
-   * advance the pointer, and return the newly appointed object
+   * advance the pointer,
    */
-  next() {
-    return this.data[this.index++ % this.data.length] || null;
+  advance() {
+    if (this.index++ >= (this.data.length-1)) this.index = 0;
+    return this;
   }
 
   /**
-  * Get current object (do not advance index)
+  * Get get object (do not advance index)
   */
-  current() {
-    return this.data[this.index % this.data.length];
+  get() {
+    return this.data[this.index] || null;
+  }
+
+  last() {
+    return this.data[this.data.length - 1] || null;
   }
 
   push(thing) {
@@ -25,32 +31,34 @@ class Sequence {
 
   clear() {
     this.data = [];
-    this.index = -1;
+    this.index = 0;
   }
 
+  get length() {
+    return this.data.length;
+  }
 }
 
 export default class ClickHandler {
 
   constructor() {
-    this.seq = new Sequence();
-    this.loop = new Tone.Loop((time) => {
-      const thing = this.seq.next();
-      if (!thing) {
-        return;
-      }      
-      thing.object.play(time, 0, '16n');
+    this.things = new Things();
+    this.noteLength = new Tone.Time('16n');
 
-    }, '16n');
+    const iter = (time, event) => {
+      const thing = this.things.advance().get();
+      if (thing) thing.object.play(time, 0, this.noteLength);
+    };
 
-    this.loop.start('+0.1');
-
+    const loop = new Tone.Loop(iter, '16n');
+    loop.start();
+  
     Tone.Transport.start();
   }
 
   receive(clicked, event) {
-    const currentThing = this.seq.current();
-    const thing = {
+    const previous = this.things.last();
+    const newThing = {
       object: clicked,
       event: event,
       time: event.timeStamp,
@@ -58,23 +66,20 @@ export default class ClickHandler {
       deltaTime: Number.MAX_VALUE,
     }
 
-    if (currentThing) {
-      const dx = clicked.x - currentThing.object.x;
-      const dy = clicked.y - currentThing.object.y;
-      thing.distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-      thing.deltaTime = thing.time - currentThing.time;
+    if (previous) {
+      const dx = newThing.object.x - previous.object.x;
+      const dy = newThing.object.y - previous.object.y;
+      newThing.distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+      newThing.deltaTime = newThing.time - previous.time;
     }
 
-    if (thing.distance >= 3) {
-      this.seq.clear();
+    if (newThing.distance > 3) {
+      this.things.clear();
     }
 
-    this.seq.push(thing);
-    console.log(thing.deltaTime)
+    this.things.push(newThing);
   }
 
-  play() {
 
-  }
 
 }

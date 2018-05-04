@@ -153,7 +153,7 @@ export default class Cell {
     }
     // If all players are in use, add a new one
     if (!playMe) {
-      playMe = new Tone.Player(this.buffer).connect(this.output);
+      playMe = new Tone.Player(this.buffer).connect(this.output).sync();
       playMe.fadeOut = 0.15;
       this.players.push(playMe);
     }
