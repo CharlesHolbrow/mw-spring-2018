@@ -4,6 +4,7 @@ import AppEndpoint from './AppEndpoint.js';
 import Cell from './Cell.js';
 import BufferCache from './BufferCache.js';
 import Scroll from './scroll.js';
+import ClickHandler from './ClickHandler.js';
 
 /**
 * High level Aether Application
@@ -24,6 +25,7 @@ export default class App {
     this.mapName = 'snd:a';
     this.svgCells = this.svgRoot.nested();
 
+    this.clickHandler = new ClickHandler();
     this.scroll = new Scroll(this.outer, this.svgParent);
     this.bufferCache = new BufferCache();
     this.synk = new Synk(url);
@@ -44,6 +46,9 @@ export default class App {
       if (obj instanceof Cell) {
         obj.setBuffer(this.bufferCache.get(obj.audioPath));
         obj.setParent(this.svgCells);
+        obj.svg.on('click', (event) => {
+          this.clickHandler.receive(obj, event);
+        });
       }
     });
     this.synk.objects.on('mod', (obj, msg) => {});

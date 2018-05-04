@@ -26,8 +26,6 @@ export default class Cell {
     delete state.audioPath;
 
     this.update(state); updates
-
-
     this.framesDrawn = 0;
 
     this.svg = new SVG.Rect()
@@ -40,6 +38,11 @@ export default class Cell {
       console.log('click', this.id);
       this.play();
     });
+
+    this.svg.on('mousedown', (e) => {});
+    this.svg.on('mousemove', (e) => {});
+    this.svg.on('mouseup', (e) => {});
+    this.svg.on('touchstart', (e) => {});
   }
 
   update(state) {
@@ -54,10 +57,13 @@ export default class Cell {
   }
 
   teardown() {
+    this.svg.off(); // unbind all events
+    this.svg.remove();
     this.output.dispose();
     if (this.meter) this.meter.dispose();
-    if (this.svg) this.svg.remove();
-    for (const player of this.players) player.dispose();
+    for (const player of this.players) {
+      player.dispose();
+    }
     // We don't dispose of the buffer: it may still be in use by another cell.
   }
 
@@ -124,7 +130,7 @@ export default class Cell {
   }
 
 
-  play() {
+  play(startTime, offset, duration) {
     if (!this.buffer || !this.buffer.loaded) {
       console.warn('Cannot play: samples not loaded', this.audioPath);
       return;
@@ -138,24 +144,45 @@ export default class Cell {
     this.framesDrawn = 0;
 
     // Find a player that is unused
-    let started = false;
+    let playMe
     for (const player of this.players) {
       if (player.state === 'stopped') {
-        player.start();
-        started = true;
+        playMe = player;
         break;
       }
     }
     // If all players are in use, add a new one
-    if (!started) {
-      const player = new Tone.Player(this.buffer).connect(this.output);
-      this.players.push(player);
-      player.start();
+    if (!playMe) {
+      playMe = new Tone.Player(this.buffer).connect(this.output);
+      playMe.fadeOut = 0.15;
+      this.players.push(playMe);
     }
+
+    playMe.start(startTime, offset, duration);
 
     // This is a little sloppy, because we are playing multiple samples at the
     // same time, we end up with redundant .draw() calls.
     this.animate()
+  }
+
+  loop() {
+
+    const part = new Tone.Part((time, event) => {
+      let duration;
+      if (event.hasOwnProperty('dur')) {
+        duration = new Tone.Time(event.dur).toSeconds() + 0.15; // add fadeout
+      }
+      this.play(time, 0, duration);
+    }, [
+      {time: 0, dur: '16n'},
+      {time: '0:0.25', dur: '16n'},
+      {time: '0:0.50', dur: '16n'},
+      {time: '0:0.75', dur: '16n'},
+      {time: '0:1.00', dur: '16n'},
+      {time: '0:1.25', dur: '16n'},
+      {time: '0:1.50'},
+    ]);
+    part.start('+0.1');
   }
 
   blur(value, ms) {
