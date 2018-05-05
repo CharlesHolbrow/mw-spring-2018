@@ -34,6 +34,10 @@ class Things {
     this.index = 0;
   }
 
+  restart() {
+    this.index = 0;
+  }
+
   get length() {
     return this.data.length;
   }
@@ -85,18 +89,20 @@ export default class ClickHandler {
     this.things = new Things();
     this.measure = -1;
 
-    const sixteenths = this.things.sixteenths();
-    const loops = window.melodies = [];
-    for (let i = 1; i <= 12; i++) {
-      loops.push(this.things.divisions(i));
+    // Offset divs, so that the index is equal to the divisions
+    const divs = window.melodies = [null];
+    for (let i = 1; i <= 16; i++) {
+      divs.push(this.things.divisions(i));
     }
+    divs[0] = divs[1];
 
+    // A curated collection of patterns used below
     let patternIndex = 0;
     const patterns = [
-      loops[11], // divisions(12)
-      sixteenths,
-      loops[3],  // divisions(4)
-      loops[2],  // divisions(3)
+      divs[12], // divisions(12)
+      divs[16], // divisions(16)
+      divs[4],  // divisions(4)
+      divs[3],  // divisions(3)
     ];
 
 
@@ -104,7 +110,7 @@ export default class ClickHandler {
     this.control = Tone.Transport.scheduleRepeat((time, event) => {
       this.measure++;
 
-      const loop = loops[this.measure];
+      const loop = divs[this.measure];
       if (loop && this.measure < 3) {
 
         loop.start();
@@ -127,6 +133,7 @@ export default class ClickHandler {
       //   return;
       // }
       let pattern = patterns[patternIndex % patterns.length];
+      this.things.restart();
       pattern.start();
       patternIndex++;
     }, '1m', 1);
