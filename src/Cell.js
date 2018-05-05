@@ -144,7 +144,7 @@ export default class Cell {
     this.framesDrawn = 0;
 
     // Find a player that is unused
-    let playMe
+    let playMe;
     for (const player of this.players) {
       if (player.state === 'stopped') {
         playMe = player;

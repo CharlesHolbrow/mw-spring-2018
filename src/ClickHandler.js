@@ -58,18 +58,22 @@ class Things {
   }
 
   divisions(divisions) {
-    const a = new Array(divisions).fill(undefined).map((v, i) => i);
-    const length = (new Tone.Time('1m') / divisions);
+    const length = new Tone.Time('1m').toSeconds() / divisions;
 
-    const seq = new Tone.Loop((time, value) => {
+    const loop = new Tone.Loop((time) => {
+      // We specify loop.start(transportTime), but inside this callback, the
+      // time argument is a Tone.context time.
       const thing = this.get();
-      console.log('play:', value, time)
-      if (thing) thing.object.play(time, 0, length + .15);
+      if (thing) {
+        thing.object.play(time, 0, length + .15);
+      }
       this.advance();
     }, length);
 
-    seq.iterations = divisions;
-    return seq;
+    // No idea why iterations = 1 still plays the damn thing twice.
+    loop.iterations = divisions === 1 ? false : divisions;
+
+    return loop;
   }
 }
 
@@ -82,20 +86,23 @@ export default class ClickHandler {
     this.measure = -1;
 
     const sixteenths = this.things.sixteenths();
-    const melodies = [];
-    for (let i = 0; i <= 16; i++) {
-      melodies.push(this.things.divisions(i));
+    const loops = window.melodies = [];
+    for (let i = 1; i <= 12; i++) {
+      loops.push(this.things.divisions(i));
     }
 
 
     let todo = false;
     this.control = Tone.Transport.scheduleRepeat((time, event) => {
       this.measure++;
-      console.log('measure:', this.measure);
 
-      const melody = melodies[this.measure];
-      if (melody) {
-        melody.start(time);
+      const loop = loops[this.measure];
+      if (loop && this.measure < 3) {
+
+        loop.start();
+        // You can't use `time` here, because loop.start expects times
+        // relative to the transport, while 'time' is relative to the
+        // audioContext.
         return;
       }
 
@@ -113,10 +120,11 @@ export default class ClickHandler {
       // }
 
       todo = !todo;
-      if (todo)
-        melodies[2].start(time);
-      else
-        sixteenths.start(time);
+      if (todo) {
+        loops[11].start();
+      } else {
+        sixteenths.start();
+      }
     }, '1m', 1);
   }
 
@@ -148,7 +156,4 @@ export default class ClickHandler {
 
     this.things.push(newThing);
   }
-
-
-
 }

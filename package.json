@@ -15,7 +15,7 @@
     "svg.filter.js": "^2.0.2",
     "svg.js": "^2.6.4",
     "synk-js": "^2.1.0",
-    "tone": "^13.1.4"
+    "tone": "^13.1.6"
   },
   "repository": {
     "type": "git",
