@@ -91,6 +91,14 @@ export default class ClickHandler {
       loops.push(this.things.divisions(i));
     }
 
+    let patternIndex = 0;
+    const patterns = [
+      loops[11], // divisions(12)
+      sixteenths,
+      loops[3],  // divisions(4)
+      loops[2],  // divisions(3)
+    ];
+
 
     let todo = false;
     this.control = Tone.Transport.scheduleRepeat((time, event) => {
@@ -118,13 +126,9 @@ export default class ClickHandler {
       //   divisions.start(time);
       //   return;
       // }
-
-      todo = !todo;
-      if (todo) {
-        loops[11].start();
-      } else {
-        sixteenths.start();
-      }
+      let pattern = patterns[patternIndex % patterns.length];
+      pattern.start();
+      patternIndex++;
     }, '1m', 1);
   }
 

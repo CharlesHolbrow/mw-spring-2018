@@ -19,7 +19,6 @@ import App from './App.js';
 Tone.context.latencyHint = 0.1;
 
 var svgRoot = document.getElementById('svg-parent');
-
 var app = window.app = new App(svgRoot);
 
 app.focusOnChunk(0, 0);
