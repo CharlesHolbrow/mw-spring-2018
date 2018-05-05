@@ -37,26 +37,95 @@ class Things {
   get length() {
     return this.data.length;
   }
+
+  /**
+   * Get a Tone.Loop that iterates over things.data
+   * @param {Int} measures - Total duration of loop in measures
+   */
+  sixteenths(measures) {
+    measures = measures || 1;
+    const noteLength = new Tone.Time('16n');
+
+    const loop = new Tone.Loop((time, event) => {
+      const thing = this.get();
+      if (thing) thing.object.play(time, 0, noteLength + 0.1);
+      this.advance();
+    }, '16n');
+
+    loop.iterations = Math.floor(measures * 16);
+
+    return loop;
+  }
+
+  divisions(divisions) {
+    const a = new Array(divisions).fill(undefined).map((v, i) => i);
+    const length = (new Tone.Time('1m') / divisions);
+
+    const seq = new Tone.Loop((time, value) => {
+      const thing = this.get();
+      console.log('play:', value, time)
+      if (thing) thing.object.play(time, 0, length + .15);
+      this.advance();
+    }, length);
+
+    seq.iterations = divisions;
+    return seq;
+  }
 }
+
 
 export default class ClickHandler {
 
   constructor() {
+    this.started = false;
     this.things = new Things();
-    this.noteLength = new Tone.Time('16n');
+    this.measure = -1;
 
-    const iter = (time, event) => {
-      const thing = this.things.advance().get();
-      if (thing) thing.object.play(time, 0, this.noteLength);
-    };
+    const sixteenths = this.things.sixteenths();
+    const melodies = [];
+    for (let i = 0; i <= 16; i++) {
+      melodies.push(this.things.divisions(i));
+    }
 
-    const loop = new Tone.Loop(iter, '16n');
-    loop.start();
-  
-    Tone.Transport.start();
+
+    let todo = false;
+    this.control = Tone.Transport.scheduleRepeat((time, event) => {
+      this.measure++;
+      console.log('measure:', this.measure);
+
+      const melody = melodies[this.measure];
+      if (melody) {
+        melody.start(time);
+        return;
+      }
+
+      // if (this.measure < 2) {
+      //   divisions.start(time);
+      //   return;
+      // }
+      // if (this.measure === 2) {
+      //   divisions.start(time);
+      //   return;
+      // }
+      // if (this.measure === 3) {
+      //   divisions.start(time);
+      //   return;
+      // }
+
+      todo = !todo;
+      if (todo)
+        melodies[2].start(time);
+      else
+        sixteenths.start(time);
+    }, '1m', 1);
   }
 
   receive(clicked, event) {
+    if (!this.started) {
+      Tone.Transport.start();
+      this.started = true
+    }
+
     const previous = this.things.last();
     const newThing = {
       object: clicked,

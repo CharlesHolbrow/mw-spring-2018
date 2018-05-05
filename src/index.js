@@ -16,6 +16,8 @@ import App from './App.js';
 // Paths from sounds
 // Layers? Muriel Cooper?
 
+Tone.context.latencyHint = 0.1;
+
 var svgRoot = document.getElementById('svg-parent');
 
 var app = window.app = new App(svgRoot);
