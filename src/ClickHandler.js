@@ -4,6 +4,10 @@ class Things {
   constructor() {
     this.index = 0;
     this.data = [];
+    this.maxOffset = 0.7;
+    this.fadeOut = 0.15;
+    this.fadeIn = 0;
+    this.timeOfLastPush = Number.MIN_VALUE;
   }
 
   /**
@@ -26,6 +30,7 @@ class Things {
   }
 
   push(thing) {
+    this.timeOfLastPush = Tone.now();
     this.data.push(thing);
   }
 
@@ -42,34 +47,19 @@ class Things {
     return this.data.length;
   }
 
-  /**
-   * Get a Tone.Loop that iterates over things.data
-   * @param {Int} measures - Total duration of loop in measures
-   */
-  sixteenths(measures) {
-    measures = measures || 1;
-    const noteLength = new Tone.Time('16n');
-
-    const loop = new Tone.Loop((time, event) => {
-      const thing = this.get();
-      if (thing) thing.object.play(time, 0, noteLength + 0.1);
-      this.advance();
-    }, '16n');
-
-    loop.iterations = Math.floor(measures * 16);
-
-    return loop;
+  secondsSinceLastPush() {
+    return Tone.now() - this.timeOfLastPush;
   }
 
   divisions(divisions) {
     const length = new Tone.Time('1m').toSeconds() / divisions;
-
     const loop = new Tone.Loop((time) => {
       // We specify loop.start(transportTime), but inside this callback, the
       // time argument is a Tone.context time.
+      const offset = Math.random() * this.maxOffset;
       const thing = this.get();
       if (thing) {
-        thing.object.play(time, 0, length + .15);
+        thing.object.play(time, offset, length, this.fadeIn, this.fadeOut);
       }
       this.advance();
     }, length);
@@ -87,7 +77,7 @@ export default class ClickHandler {
   constructor() {
     this.started = false;
     this.things = new Things();
-    this.measure = -1;
+    this.level = 0;
 
     // Offset divs, so that the index is equal to the divisions
     const divs = window.melodies = [null];
@@ -99,43 +89,49 @@ export default class ClickHandler {
     // A curated collection of patterns used below
     let patternIndex = 0;
     const patterns = [
-      divs[12], // divisions(12)
       divs[16], // divisions(16)
-      divs[4],  // divisions(4)
-      divs[3],  // divisions(3)
+      divs[16], // divisions(16)
+      divs[16], // divisions(16)
+      divs[16], // divisions(16)
     ];
+    let pattern;
 
 
-    let todo = false;
+    let goingUp = true;
     this.control = Tone.Transport.scheduleRepeat((time, event) => {
-      this.measure++;
+      // You can't use `time` here, because loop.start expects times
+      // relative to the transport, while 'time' is relative to the
+      // audioContext.
 
-      const loop = divs[this.measure];
-      if (loop && this.measure < 3) {
-
-        loop.start();
-        // You can't use `time` here, because loop.start expects times
-        // relative to the transport, while 'time' is relative to the
-        // audioContext.
-        return;
+      const secondsSinceLastPush = this.things.secondsSinceLastPush();
+      if (secondsSinceLastPush > Tone.Time('2m').toSeconds()) {
+        if (this.level >= 0) this.level--;
+        goingUp = false;
+      } else if (secondsSinceLastPush < Tone.Time('2m').toSeconds()) {
+        this.level++;
+        goingUp = true;
       }
 
-      // if (this.measure < 2) {
-      //   divisions.start(time);
-      //   return;
-      // }
-      // if (this.measure === 2) {
-      //   divisions.start(time);
-      //   return;
-      // }
-      // if (this.measure === 3) {
-      //   divisions.start(time);
-      //   return;
-      // }
-      let pattern = patterns[patternIndex % patterns.length];
+      if (goingUp) {
+        this.things.fadeOut = 0.15
+      } else {
+        this.things.fadeOut = 0.8;
+      }
+
+      // fade gets faster with higher levels
+      let fadeIn = 0.060;
+      if (this.level > 4) fadeIn = 0.03;
+      if (this.level > 8) fadeIn = 0.01;
+      if (this.level > 12) fadeIn = 0.005
+
+      console.log(fadeIn);
+      this.things.fadeIn = fadeIn;
+
+      this.level = Math.min(this.level, divs.length -1);
       this.things.restart();
-      pattern.start();
-      patternIndex++;
+      pattern = divs[this.level];
+      if (pattern) pattern.stop().start();
+
     }, '1m', 1);
   }
 

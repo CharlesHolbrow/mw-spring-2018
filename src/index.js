@@ -15,6 +15,8 @@ import App from './App.js';
 //
 // Paths from sounds
 // Layers? Muriel Cooper?
+//
+// The shortest sample is B2-min-003.wav @ 1.335 seconds
 
 Tone.context.latencyHint = 0.1;
 

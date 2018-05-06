@@ -8,7 +8,6 @@ var SPACING = 116;
 
 export default class Cell {
   constructor(id, state) {
-    //state: {subKey: "piano:main", audioPath: "", x: 1, y: 4}
 
     // default values
     this.radius = 10;
@@ -130,7 +129,7 @@ export default class Cell {
   }
 
 
-  play(startTime, offset, duration) {
+  play(startTime, offset, duration, fadeIn, fadeOut) {
     if (!this.buffer || !this.buffer.loaded) {
       console.warn('Cannot play: samples not loaded', this.audioPath);
       return;
@@ -144,19 +143,46 @@ export default class Cell {
     this.framesDrawn = 0;
 
     // Find a player that is unused
+
     let playMe;
-    for (const player of this.players) {
+    for (const [i, player] of this.players.entries()) {
       if (player.state === 'stopped') {
         playMe = player;
+
+        // move the found player to the end of the queue
+        const catMe = this.players.splice(i, 1);
+        this.players = this.players.concat(catMe);
+
         break;
       }
     }
-    // If all players are in use, add a new one
+    // If all players are in use, add two more;
     if (!playMe) {
       playMe = new Tone.Player(this.buffer).connect(this.output);
-      playMe.fadeOut = 0.15;
-      this.players.push(playMe);
+      this.players.unshift(playMe);
+      this.players.unshift(new Tone.Player(this.buffer).connect(this.output));
     }
+
+    if (!offset) {
+      offset = 0;
+    }
+
+    if (!fadeIn) {
+      fadeIn = 0
+    }
+
+    // default fade in is 0. Good idea?
+    playMe.fadeIn = fadeIn;
+
+    // default fade out is 50ms
+    playMe.fadeOut = typeof fadeOut === 'number' ? fadeOut : 0.050;
+
+    console.log('fadeIn', playMe.fadeIn);
+
+    // Don't let duration drop below the fade in time.
+    if (typeof duration === 'number')
+      duration = Math.max(playMe.fadeIn + 0.02, duration + (playMe.fadeOut / 4));
+    // BUG(charles): Did not handle a Tone.Time
 
     playMe.start(startTime, offset, duration);
 
