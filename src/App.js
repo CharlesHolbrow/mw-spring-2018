@@ -16,14 +16,17 @@ export default class App {
   constructor(svgParent) {
     this.outer = svgParent.parentElement; // The smaller div with scrolling
     this.svgParent = svgParent;           // The div that will be centered
-    this.svgRoot = SVG(svgParent).size(210, 210); // the svg
+    this.svgRoot = SVG(svgParent)         // the svg
+      .attr('draggable', false) // I'm unsure about effects of 'draggable' attr
+      .size(210, 210);
 
     const https = window.location.protocol.startsWith('https');
     const url =  `${https ? 'wss' : 'ws'}://${window.location.host}/ws`;
     
     this.focusChunk = {x: 0, y: 0};
     this.mapName = 'snd:a';
-    this.svgCells = this.svgRoot.nested();
+    this.svgCells = this.svgRoot.nested()
+      .attr('draggable', false); // I'm unsure about effects of 'draggable' attr
 
     this.clickHandler = new ClickHandler();
     this.scroll = new Scroll(this.outer, this.svgParent);
@@ -49,8 +52,18 @@ export default class App {
         obj.svg.on('click', (event) => {
           this.clickHandler.receive(obj, event);
         });
+
+        obj.on('moved', (x, y) => {
+          this.synk.connection.send({
+            method: 'moveCell',
+            id: obj.id,
+            x: x,
+            y: y,
+          });
+        });
       }
     });
+
     this.synk.objects.on('mod', (obj, msg) => {});
     this.synk.objects.on('rem', (obj, msg) => {});
 

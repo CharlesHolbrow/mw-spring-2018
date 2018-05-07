@@ -1,19 +1,22 @@
 import Tone from 'tone';
 import SVG from 'svg.js';
+import EventEmitter from 'eventemitter3';
 
 import { threeSaturationLevels } from './colors.js';
 
 var SIZE = 100;
 var SPACING = 116;
 
-export default class Cell {
+export default class Cell extends EventEmitter {
   constructor(id, state) {
+    super();
 
     // default values
     this.radius = 10;
     this.hue = Math.random();
     this.pos = {x:0, y:0};
     this.pixelPos = {x:0, y:0};
+    this.mouseHold = false;
 
     // The master output for this cell
     this.meter = new Tone.Meter(0.9);
@@ -31,17 +34,18 @@ export default class Cell {
       .size(SIZE, SIZE)
       .radius(this.radius)
       .x(this.pixelPos.x)
-      .y(this.pixelPos.y).fill('#ccc');
+      .y(this.pixelPos.y)
+      .draggable()
+      .fill('#ccc');
 
     this.svg.on('click', () => {
       console.log('click', this.id);
       this.play();
     });
 
-    this.svg.on('mousedown', (e) => {});
-    this.svg.on('mousemove', (e) => {});
-    this.svg.on('mouseup', (e) => {});
-    this.svg.on('touchstart', (e) => {});
+    this.svg.on('dragend', (e) => {
+      this.moveRelease();
+    })
   }
 
   update(state) {
@@ -63,6 +67,7 @@ export default class Cell {
     for (const player of this.players) {
       player.dispose();
     }
+    this.removeAllListeners();
     // We don't dispose of the buffer: it may still be in use by another cell.
   }
 
@@ -128,6 +133,24 @@ export default class Cell {
     return this.pos.y;
   }
 
+  moveByPixels(x, y) {
+    this.svg.y(this.svg.y() + y);
+    this.svg.x(this.svg.x() + x);
+  }
+
+  moveRelease() {
+    const newX = Math.round(this.svg.x() / SPACING);
+    const newY = Math.round(this.svg.y() / SPACING);
+
+    let changed = false;
+    if (newX !== this.x || newY !== this.y) changed = true;
+
+    this.x = newX;
+    this.y = newY;
+
+    if (changed) this.emit('moved', newX, newY);
+  }
+
 
   play(startTime, offset, duration, fadeIn, fadeOut) {
     if (!this.buffer || !this.buffer.loaded) {
@@ -176,8 +199,6 @@ export default class Cell {
 
     // default fade out is 50ms
     playMe.fadeOut = typeof fadeOut === 'number' ? fadeOut : 0.050;
-
-    console.log('fadeIn', playMe.fadeIn);
 
     // Don't let duration drop below the fade in time.
     if (typeof duration === 'number')
