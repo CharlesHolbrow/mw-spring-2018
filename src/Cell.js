@@ -27,7 +27,7 @@ export default class Cell extends EventEmitter {
     this.audioPath = state.audioPath;
     delete state.audioPath;
 
-    this.update(state); updates
+    this.update(state);
     this.framesDrawn = 0;
 
     this.svg = new SVG.Rect()
@@ -57,6 +57,9 @@ export default class Cell extends EventEmitter {
     }
     if (typeof state.audioPath !== 'undefined')
       console.warn("Changing audioPath is not supported", this.id);
+
+    if (typeof state.midiNote === 'number')
+      this.midiNote = state.midiNote;
   }
 
   teardown() {

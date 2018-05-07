@@ -79,16 +79,20 @@ export default class ClickHandler {
     this.things = new Things();
     this.level = 0; // game level (not volume)
 
-    this.sampler = new Tone.Sampler({
-      0: "sound/g-3rd-s/01-A2-min-003-stretch.wav",
-      1: "sound/g-3rd-s/02-B2-min-004-stretch.wav",
-      2: "sound/g-3rd-s/03-C3-maj-004-stretch.wav",
-      3: "sound/g-3rd-s/04-D3-maj-004-stretch.wav",
-      4: "sound/g-3rd-s/05-E3-min-005-stretch.wav",
-    }, () => {
-      // sampler will repitch the closest sample
+    // Sampler is meant for creating instruments, but here I'm just using it for
+    // polyphonic playback of multiple files.
+    const samplerData = {
+      45: "sound/g-3rd-s/01-A2-min-003-stretch.wav",
+      47: "sound/g-3rd-s/02-B2-min-004-stretch.wav",
+      48: "sound/g-3rd-s/03-C3-maj-004-stretch.wav",
+      50: "sound/g-3rd-s/04-D3-maj-004-stretch.wav",
+      52: "sound/g-3rd-s/05-E3-min-005-stretch.wav",
+      54: "sound/g-3rd-s/06-Fs3-min-005-stretch.wav",
+      55: "sound/g-3rd-s/07-G3-maj-002-stretch.wav",
+      57: "sound/g-3rd-s/08-A3-min-004-stretch.wav",
+    };
+    this.sampler = new Tone.Sampler(samplerData, () => {
       console.log('clickHandler.synth ready');
-      this.sampler.triggerAttackRelease(Tone.Frequency(0, 'midi'), 10);
     }).toMaster();
 
     // Offset divs, so that the index is equal to the divisions
@@ -100,10 +104,13 @@ export default class ClickHandler {
 
     let pattern;
     let goingUp = true;
+    let count = -1;
     this.control = Tone.Transport.scheduleRepeat((time, event) => {
       // You can't use `time` here, because loop.start expects times
       // relative to the transport, while 'time' is relative to the
       // audioContext.
+
+      count++
 
       const secondsSinceLastPush = this.things.secondsSinceLastPush();
       if (secondsSinceLastPush > Tone.Time('2m').toSeconds()) {
@@ -132,9 +139,27 @@ export default class ClickHandler {
 
       // don't reset until we get to level 4
       if (this.level >=4) this.things.restart();
-      pattern = divs[this.level];
-      if (pattern) pattern.stop().start();
 
+      // Get the pattern we want to play
+      pattern = divs[this.level];
+      // save a reference to the first 'thing' in the pattern
+      const firstThing = this.things.get();
+      // if we got the pattern, play it
+      if (pattern) {
+        pattern.stop().start();
+
+        // play the sampler, maybe
+        if (firstThing && typeof firstThing.object.midiNote === 'number') {
+          const firstMidi = firstThing.object.midiNote;
+          console.log('firstMidi', firstMidi);
+          if ((count % 4 === 0)
+            && (Math.floor(count / 16) % 2) // Flip every 16 measures
+            &&  samplerData.hasOwnProperty(firstMidi)
+            && this.sampler.loaded) {
+            this.sampler.triggerAttackRelease(Tone.Frequency(firstMidi, 'midi'), 24);
+          }
+        }
+      } // close `if (pattern)`
     }, '1m', 1);
   }
 

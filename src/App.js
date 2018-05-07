@@ -69,10 +69,12 @@ export default class App {
 
     // We could replace 'close' with reconnect'
     this.synk.connection.on('close', () => {
-      console.log('connection close bySKey.branches:', Object.keys(this.synk.objects.bySKey.branches));
+      const sKeys = Object.keys(this.synk.objects.bySKey.branches);
+      console.log(`connection close subscribed to ${sKeys.length} keys`);
     });
     this.synk.connection.on('open', () => {
-      console.log('connection open bySKey.branches: ', Object.keys(this.synk.objects.bySKey.branches));
+      const sKeys = Object.keys(this.synk.objects.bySKey.branches);
+      console.log(`connection open subscribed to ${sKeys.length} keys`);
     });
   }
 
