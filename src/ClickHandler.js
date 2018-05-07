@@ -77,7 +77,19 @@ export default class ClickHandler {
   constructor() {
     this.started = false;
     this.things = new Things();
-    this.level = 0;
+    this.level = 0; // game level (not volume)
+
+    this.sampler = new Tone.Sampler({
+      0: "sound/g-3rd-s/01-A2-min-003-stretch.wav",
+      1: "sound/g-3rd-s/02-B2-min-004-stretch.wav",
+      2: "sound/g-3rd-s/03-C3-maj-004-stretch.wav",
+      3: "sound/g-3rd-s/04-D3-maj-004-stretch.wav",
+      4: "sound/g-3rd-s/05-E3-min-005-stretch.wav",
+    }, () => {
+      // sampler will repitch the closest sample
+      console.log('clickHandler.synth ready');
+      this.sampler.triggerAttackRelease(Tone.Frequency(0, 'midi'), 10);
+    }).toMaster();
 
     // Offset divs, so that the index is equal to the divisions
     const divs = window.melodies = [null];
@@ -86,17 +98,7 @@ export default class ClickHandler {
     }
     divs[0] = divs[1];
 
-    // A curated collection of patterns used below
-    let patternIndex = 0;
-    const patterns = [
-      divs[16], // divisions(16)
-      divs[16], // divisions(16)
-      divs[16], // divisions(16)
-      divs[16], // divisions(16)
-    ];
     let pattern;
-
-
     let goingUp = true;
     this.control = Tone.Transport.scheduleRepeat((time, event) => {
       // You can't use `time` here, because loop.start expects times
@@ -124,11 +126,12 @@ export default class ClickHandler {
       if (this.level > 8) fadeIn = 0.01;
       if (this.level > 12) fadeIn = 0.005
 
-      console.log(fadeIn);
       this.things.fadeIn = fadeIn;
 
       this.level = Math.min(this.level, divs.length -1);
-      this.things.restart();
+
+      // don't reset until we get to level 4
+      if (this.level >=4) this.things.restart();
       pattern = divs[this.level];
       if (pattern) pattern.stop().start();
 

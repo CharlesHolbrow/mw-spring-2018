@@ -26,6 +26,7 @@ export default {
         './node_modules/tone/build/Tone.js': 'public/js/tone.js',
         './node_modules/svg.js/dist/svg.js': 'public/js/svg.js',
         './node_modules/svg.filter.js/dist/svg.filter.js': 'public/js/svg.filter.js',
+        './node_modules/svg.draggable.js/dist/svg.draggable.js': 'public/js/svg.draggable.js',
         './node_modules/eventemitter3/index.js': 'public/js/eventemitter3.js',
         './node_modules/kefir/dist/kefir.js': 'public/js/kefir.js',
     })

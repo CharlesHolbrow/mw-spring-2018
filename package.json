@@ -12,6 +12,7 @@
   "dependencies": {
     "eventemitter3": "^2.0.3",
     "kefir": "^3.8.3",
+    "svg.draggable.js": "^2.2.1",
     "svg.filter.js": "^2.0.2",
     "svg.js": "^2.6.4",
     "synk-js": "^2.1.0",
