@@ -31,5 +31,5 @@ export default {
         './node_modules/kefir/dist/kefir.js': 'public/js/kefir.js',
     })
   ],
-  external: ['tone', 'svg.js', 'kefir', 'eventemitter3']
+  external: ['tone', 'svg.js', 'kefir', 'eventemitter3', 'svg.draggable.js', 'svg.filter.js']
 };

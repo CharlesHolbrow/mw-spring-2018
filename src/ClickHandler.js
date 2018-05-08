@@ -4,7 +4,8 @@ class Things {
   constructor() {
     this.index = 0;
     this.data = [];
-    this.maxOffset = 0.7;
+    this.offsetRandomRange = 0.7;
+    this.offset = 0;
     this.fadeOut = 0.15;
     this.fadeIn = 0;
     this.timeOfLastPush = Number.MIN_VALUE;
@@ -56,7 +57,7 @@ class Things {
     const loop = new Tone.Loop((time) => {
       // We specify loop.start(transportTime), but inside this callback, the
       // time argument is a Tone.context time.
-      const offset = Math.random() * this.maxOffset;
+      const offset = this.offset + (Math.random() * this.offsetRandomRange);
       const thing = this.get();
       if (thing) {
         thing.object.play(time, offset, length, this.fadeIn, this.fadeOut);
@@ -79,21 +80,41 @@ export default class ClickHandler {
     this.things = new Things();
     this.level = 0; // game level (not volume)
 
+    // All audio from cells will be routed here
+    this.cellMaster = new Tone.Gain().toMaster();
+    // this.input1 = new Tone.Gain(1).connect(this.cellMaster);
+    // this.input2 = new Tone.Gain(0).connect(this.cellMaster);
+
+    this.left = new Tone.Panner(-1).toMaster();
+    this.right = new Tone.Panner(1).toMaster();
+
+    this.cfl = new Tone.CrossFade(0).connect(this.left);
+    this.cfr = new Tone.CrossFade(0).connect(this.right);
+
+    this.cellClean = new Tone.Gain()
+      .connect(this.cfl, 0, 0)
+      .connect(this.cfr, 1, 0);
+
+    this.cellDistortion = new Tone.Distortion(0.2)
+      .connect(this.cfl, 0, 1)
+      .connect(this.cfr, 1, 1);
+
     // Sampler is meant for creating instruments, but here I'm just using it for
     // polyphonic playback of multiple files.
     const samplerData = {
-      45: "sound/g-3rd-s/01-A2-min-003-stretch.wav",
-      47: "sound/g-3rd-s/02-B2-min-004-stretch.wav",
-      48: "sound/g-3rd-s/03-C3-maj-004-stretch.wav",
-      50: "sound/g-3rd-s/04-D3-maj-004-stretch.wav",
-      52: "sound/g-3rd-s/05-E3-min-005-stretch.wav",
-      54: "sound/g-3rd-s/06-Fs3-min-005-stretch.wav",
-      55: "sound/g-3rd-s/07-G3-maj-002-stretch.wav",
-      57: "sound/g-3rd-s/08-A3-min-004-stretch.wav",
+      45: "sound/g-3rd-s/01-A2-min-003-stretch.mp3",
+      47: "sound/g-3rd-s/02-B2-min-004-stretch.mp3",
+      48: "sound/g-3rd-s/03-C3-maj-004-stretch.mp3",
+      50: "sound/g-3rd-s/04-D3-maj-004-stretch.mp3",
+      52: "sound/g-3rd-s/05-E3-min-005-stretch.mp3",
+      54: "sound/g-3rd-s/06-Fs3-min-005-stretch.mp3",
+      55: "sound/g-3rd-s/07-G3-maj-002-stretch.mp3",
+      57: "sound/g-3rd-s/08-A3-min-004-stretch.mp3",
     };
+    this.samplerGain = new Tone.Gain(Tone.dbToGain(-3)).toMaster(); // sampler.volume is broken?
     this.sampler = new Tone.Sampler(samplerData, () => {
       console.log('clickHandler.synth ready');
-    }).toMaster();
+    }).connect(this.samplerGain);
 
     // Offset divs, so that the index is equal to the divisions
     const divs = window.melodies = [null];
@@ -120,6 +141,9 @@ export default class ClickHandler {
         this.level++;
         goingUp = true;
       }
+      this.level = Math.min(this.level, 20);
+
+      console.log('level:', this.level);
 
       if (goingUp) {
         this.things.fadeOut = 0.15
@@ -135,13 +159,29 @@ export default class ClickHandler {
 
       this.things.fadeIn = fadeIn;
 
-      this.level = Math.min(this.level, divs.length -1);
+      
 
       // don't reset until we get to level 4
-      if (this.level >=4) this.things.restart();
+      if (this.level >= 4) this.things.restart();
+
+      if (this.level > 16) {
+        const dist = this.level - 16; // 1, 2, 3, 4
+        this.distortion = Math.min(Math.max(dist * 0.25, 0), 1);
+      } else {
+        this.distortion = 0;
+      }
+
+      if (this.level >= 17 && this.level <= 19){
+        this.things.offset = 0.5;
+        this.things.offsetRandomRange = 0.7;
+      } else {
+        // default
+        this.things.offset = 0;
+        this.things.offsetRandomRange = 0.7;
+      }
 
       // Get the pattern we want to play
-      pattern = divs[this.level];
+      pattern = divs[Math.min(this.level, divs.length - 1)];
       // save a reference to the first 'thing' in the pattern
       const firstThing = this.things.get();
       // if we got the pattern, play it
@@ -151,7 +191,6 @@ export default class ClickHandler {
         // play the sampler, maybe
         if (firstThing && typeof firstThing.object.midiNote === 'number') {
           const firstMidi = firstThing.object.midiNote;
-          console.log('firstMidi', firstMidi);
           if ((count % 4 === 0)
             && (Math.floor(count / 16) % 2) // Flip every 16 measures
             &&  samplerData.hasOwnProperty(firstMidi)
@@ -190,5 +229,10 @@ export default class ClickHandler {
     }
 
     this.things.push(newThing);
+  }
+
+  set distortion(value) {
+    this.cfl.fade.rampTo(value, 1);
+    this.cfr.fade.rampTo(value, 1);
   }
 }

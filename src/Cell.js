@@ -20,7 +20,7 @@ export default class Cell extends EventEmitter {
 
     // The master output for this cell
     this.meter = new Tone.Meter(0.9);
-    this.output = new Tone.Gain().toMaster().connect(this.meter);
+    this.output = new Tone.Gain().connect(this.meter);
     this.players = [];
 
     // the path to download audio from
@@ -213,26 +213,6 @@ export default class Cell extends EventEmitter {
     // This is a little sloppy, because we are playing multiple samples at the
     // same time, we end up with redundant .draw() calls.
     this.animate()
-  }
-
-  loop() {
-
-    const part = new Tone.Part((time, event) => {
-      let duration;
-      if (event.hasOwnProperty('dur')) {
-        duration = new Tone.Time(event.dur).toSeconds() + 0.15; // add fadeout
-      }
-      this.play(time, 0, duration);
-    }, [
-      {time: 0, dur: '16n'},
-      {time: '0:0.25', dur: '16n'},
-      {time: '0:0.50', dur: '16n'},
-      {time: '0:0.75', dur: '16n'},
-      {time: '0:1.00', dur: '16n'},
-      {time: '0:1.25', dur: '16n'},
-      {time: '0:1.50'},
-    ]);
-    part.start('+0.1');
   }
 
   blur(value, ms) {

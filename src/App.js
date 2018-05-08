@@ -53,6 +53,7 @@ export default class App {
           this.clickHandler.receive(obj, event);
         });
 
+        // Send move requests to the server
         obj.on('moved', (x, y) => {
           this.synk.connection.send({
             method: 'moveCell',
@@ -61,6 +62,9 @@ export default class App {
             y: y,
           });
         });
+
+        obj.output.connect(this.clickHandler.cellDistortion);
+        obj.output.connect(this.clickHandler.cellClean);
       }
     });
 
