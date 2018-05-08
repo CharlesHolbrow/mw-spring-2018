@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rollup ./src/index.js --o ./build/bundle.js -f umd --name mw-spring-2017"
+    "build": "rollup ./src/index.js --o ./build/bundle.js -f umd --name mw-spring-2017",
+    "watch": "rollup -c -w"
   },
   "author": "Charles Holbrow",
   "license": "UNLICENSED",
